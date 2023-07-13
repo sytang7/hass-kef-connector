@@ -51,10 +51,13 @@ DEFAULT_VOLUME_STEP = 0.03
 
 SCAN_INTERVAL = timedelta(seconds=10)
 
+CONF_HOST = "192.168.1.193"
+CONF_NAME = "LSX ii"
+
 
 DOMAIN = "kef_connector"
 
-SOURCES = ["wifi", "bluetooth", "tv", "optical", "coaxial", "analog"]
+SOURCES = ["wifi", "bluetooth", "tv", "optical", "usb", "analog"]
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -120,7 +123,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         sources,
     )
 
-    media_player = KefLS50W2(
+    media_player = KefLSX2(
         host, name, max_volume, volume_step, sources, session, hass
     )
 
@@ -129,9 +132,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     return True
 
 
-class KefLS50W2(MediaPlayerEntity):
+class KefLSX2(MediaPlayerEntity):
     """
-    Media player implementation for KEF LS50W2
+    Media player implementation for KEF LSX2
     """
 
     def __init__(self, host, name, max_volume, volume_step, sources, session, hass):
@@ -261,7 +264,7 @@ class KefLS50W2(MediaPlayerEntity):
         if self.name is None:
             self._name = await self._speaker.speaker_name
         if self.unique_id is None:
-            self._attr_unique_id = "KEFLS50W2_" + await self._speaker.mac_address
+            self._attr_unique_id = "KEFLSX2_" + await self._speaker.mac_address
 
         # Get speaker volume (from [0,100] to [0,1])
         self._volume = await self._speaker.volume / 100
@@ -270,7 +273,7 @@ class KefLS50W2(MediaPlayerEntity):
         # Playing/Idle is available only for bluetooth or wifi
         if await self._speaker.status == "standby":
             self._state = STATE_OFF
-        elif await self._speaker.source in ["tv", "optical", "coaxial", "analog"]:
+        elif await self._speaker.source in ["tv", "optical", "usb", "analog"]:
             self._state = STATE_ON
         else:
             if await self._speaker.is_playing:
